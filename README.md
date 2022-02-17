@@ -25,9 +25,18 @@ If there is some errors, you may have to install the following python packages:
 
 - Run ``make -j`` to compile all targets
 
-or
+Compiled target can be found in the "build/" folder.
 
-- Run ``make [target-name]`` to compile only one target. possible targets are:
-- ``neuvisys-simulator`` is an executable that connects to Coppeliasim via ROS.
+## CoppeliaSim usage
 
-Compiled target are found in the "build/" folder.
+Before launching CoppeliaSim, you need to activate ros:
+- ``roscore``
+
+Then launch CoppeliaSim. If ros is working, the **ROS interface was found.** message should appear on the CoppeliaSim console at the bottom.
+
+You can open the Neuvisys Coppelia scene with:
+- ``File/Open scene...``
+- Open ``src/coppelia-scenes/Neuvisys.ttt``
+
+Then just launch the neuvisys-simulator target with:
+- ``./build/src/neuvisys-simulator``
