@@ -11,9 +11,7 @@ int main(int argc, char **argv) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
-    int action;
-    std::string msg;
-    while (ros::ok() && sim.getSimulationTime() < 300) {
+    while (ros::ok()) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -21,16 +19,14 @@ int main(int argc, char **argv) {
 
         sim.update();
         if (!sim.getLeftEvents().empty()) {
-            for (auto event : sim.getLeftEvents()) {
+            // Event loop
+//            for (auto &event : sim.getLeftEvents()) {
+//                std::cout << event.timestamp() << std::endl;
+//            }
 
-            }
-            if (sim.getLeftEvents().size() % 2 == 0) {
-                action = 0; // left
-            } else {
-                action = 2; // right
-            }
-
-            sim.activateMotors(0);
+            // motor commands
+            sim.motorCommand(0, "speed", -1);
+            sim.motorCommand(1, "speed", 1);
         }
     }
 

@@ -21,14 +21,13 @@ class Motor {
 
 public:
     Motor(ros::NodeHandle &n, const std::string &topic);
-    void jitter(double dt, double jitter = 0);
-    void changeSpeed(float speed);
-    void changePosition(float position);
 
+    void jitter(double dt, double jitter = 0);
+    [[nodiscard]] double getJitterPos() const { return m_jitterSpeed; }
     [[nodiscard]] float getSpeed() const { return m_speed.data; }
     [[nodiscard]] float getPosition() const { return m_position.data; }
-    [[nodiscard]] double getJitterPos() const { return m_jitterSpeed; }
-    void setSpeed(float speed) { m_speed.data = speed; }
+    void setSpeed(float speed);
+    void setPosition(float position);
 };
 
 #endif //NEUVISYS_MOTOR_H

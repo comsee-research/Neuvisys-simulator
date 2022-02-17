@@ -23,13 +23,6 @@ SimulationInterface::SimulationInterface() {
         ros::WallDuration sleep_t(0.5);
         sleep_t.sleep();
     }
-
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
-
-//    actionMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
-//    actionMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -70,25 +63,10 @@ void SimulationInterface::simulationStepDoneCallBack(const ros::MessageEvent<std
 
 void SimulationInterface::update() {
     m_simStepDone = false;
-    auto dt = (m_imageTime - m_lastImageTime).toSec();
     m_lastImageTime = m_imageTime;
 
+//    auto dt = (m_imageTime - m_lastImageTime).toSec();
 //    motorsJitter(dt);
-}
-
-bool SimulationInterface::poissonProcess() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-    double random = dist(gen);
-    double F = 1 - std::exp(- m_lambda * m_elapsedTime);
-
-    if (random < F) {
-        m_elapsedTime = 0;
-        return true;
-    }
-    return false;
 }
 
 void SimulationInterface::motorsJitter(double dt) {
@@ -97,27 +75,6 @@ void SimulationInterface::motorsJitter(double dt) {
 
     m_rightMotor1Pub.jitter(dt);
     m_rightMotor2Pub.jitter(dt, m_leftMotor2Pub.getJitterPos());
-}
-
-void SimulationInterface::activateMotors(uint64_t action) {
-    for (const auto &[motor, speed] : actionMapping[action]) {
-        switch (motor) {
-            case 0:
-                m_leftMotor1Pub.changeSpeed(speed);
-                break;
-            case 1:
-                m_leftMotor2Pub.changeSpeed(speed);
-                break;
-            case 2:
-                m_rightMotor1Pub.changeSpeed(speed);
-                break;
-            case 3:
-                m_rightMotor2Pub.changeSpeed(speed);
-                break;
-            default:
-                break;
-        }
-    }
 }
 
 void SimulationInterface::startSimulation() {
@@ -142,4 +99,37 @@ void SimulationInterface::triggerNextTimeStep() {
     std_msgs::Bool msg{};
     msg.data = true;
     m_triggerNextStep.publish(msg);
+}
+
+/*
+ * Motor ids:
+ * 0 = left z axis (horizontal)
+ * 1 = left y axis (vertical)
+ * 0 = right z axis (horizontal)
+ * 1 = right y axis (vertical)
+ */
+void SimulationInterface::motorCommand(uint64_t motorId, const std::string& action, float value) {
+    Motor *motor;
+    switch (motorId) {
+        case 0:
+            motor = &m_leftMotor1Pub;
+            break;
+        case 1:
+            motor = &m_leftMotor2Pub;
+            break;
+        case 2:
+            motor = &m_rightMotor1Pub;
+            break;
+        case 3:
+            motor = &m_rightMotor2Pub;
+            break;
+        default:
+            motor = &m_leftMotor1Pub;
+    }
+
+    if (action == "speed") {
+        motor->setSpeed(value);
+    } else if (action == "position") {
+        motor->setPosition(value);
+    }
 }

@@ -27,8 +27,6 @@ class SimulationInterface {
     Motor m_rightMotor1Pub = Motor(nh, "rightmotor1");
     Motor m_rightMotor2Pub = Motor(nh, "rightmotor2");
     ros::Time m_lastImageTime, m_imageTime;
-    double m_elapsedTime{};
-    double m_lambda{};
     double m_time{};
     double m_timeStep{};
     bool m_simStepDone = false;
@@ -41,7 +39,6 @@ class SimulationInterface {
     cv::Mat rightReference, rightThresholdmap, rightEim;
     bool firstLeftImage = true, firstRightImage = true;
     std::vector<Event> leftEvents, rightEvents;
-    std::vector<std::map<uint64_t, float>> actionMapping;
 
 public:
     explicit SimulationInterface();
@@ -52,12 +49,13 @@ public:
     [[nodiscard]] bool simStepDone() const { return m_simStepDone; }
     [[nodiscard]] double getSimulationTime() const { return m_time; }
     [[nodiscard]] double getSimulationTimeStep() const { return m_timeStep; }
-    void motorsJitter(double dt);
-    void activateMotors(uint64_t action);
     void enableSyncMode(bool enable);
     void triggerNextTimeStep();
     void startSimulation();
     void stopSimulation();
+
+    void motorsJitter(double dt);
+    void motorCommand(uint64_t motorId, const std::string& action, float value);
 
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
@@ -65,7 +63,6 @@ private:
     void timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep);
     void rewardSignalCallBack(const ros::MessageEvent<std_msgs::Float32> &reward);
     void simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone);
-    bool poissonProcess();
 };
 
 #endif //NEUVISYS_SIMULATIONINTERFACE_HPP
